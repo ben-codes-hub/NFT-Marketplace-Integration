@@ -170,7 +170,7 @@ const Navbar = () => {
 
                     <div className="header__action header__action--signin">
                         <Link className="header__action-btn header__action-btn--signin" to="/">
-                            {account != undefined ? (
+                            {account !== undefined ? (
                                 <span>
                                     {account &&
                                         `${account.substring(0, 6)}...${account.substring(
