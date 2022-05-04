@@ -3,9 +3,7 @@ import { Link } from 'react-router-dom';
 import swal from "sweetalert";
 import Web3 from "web3";
 
-
 import useAddLibrary from '../../components/useAddLibrary';
-import { useEthContext } from "../../contexts/EthereumContext";
 
 const Navbar = () => {
     useAddLibrary(`${process.env.PUBLIC_URL}/js/main.js`);
@@ -60,6 +58,23 @@ const Navbar = () => {
             setMetamaskConnnected(true);
         }
     };
+
+    if (parseInt(networkId) !== 1 && metamaskConnected) {
+        swal(
+            "Sorry!",
+            "Please Switch to Ethereum Mainnet!",
+            "error"
+        );
+    }
+
+    if (!isMetamask) {
+        swal(
+            "Sorry!",
+            "Non-Ethereum browser detected.",
+            "error"
+        );
+    }
+
     return (
         <header className="header">
             <div className="header__content">
@@ -155,15 +170,20 @@ const Navbar = () => {
 
                     <div className="header__action header__action--signin">
                         <Link className="header__action-btn header__action-btn--signin" to="/">
-                            <span onClick={handleConnectWallet}>
-                                {
-                                    account
-                                        ? `${account.substring(0, 6)}...${account.substring(
-                                            38
-                                        )}`
-                                        : "Connect Wallet"
-                                }
-                            </span>
+                            {account != undefined ? (
+                                <span>
+                                    {account &&
+                                        `${account.substring(0, 6)}...${account.substring(
+                                            account.length - 4
+                                        )}`}
+                                </span>
+                            ) : (
+                                <span
+                                    onClick={handleConnectWallet}
+                                >
+                                    CONNECT WALLET
+                                </span>
+                            )}
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20,12a1,1,0,0,0-1-1H11.41l2.3-2.29a1,1,0,1,0-1.42-1.42l-4,4a1,1,0,0,0-.21.33,1,1,0,0,0,0,.76,1,1,0,0,0,.21.33l4,4a1,1,0,0,0,1.42,0,1,1,0,0,0,0-1.42L11.41,13H19A1,1,0,0,0,20,12ZM17,2H7A3,3,0,0,0,4,5V19a3,3,0,0,0,3,3H17a3,3,0,0,0,3-3V16a1,1,0,0,0-2,0v3a1,1,0,0,1-1,1H7a1,1,0,0,1-1-1V5A1,1,0,0,1,7,4H17a1,1,0,0,1,1,1V8a1,1,0,0,0,2,0V5A3,3,0,0,0,17,2Z" /></svg>
                         </Link>
                     </div>
