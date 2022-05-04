@@ -1,27 +1,63 @@
-import React from 'react';
+import React, { useEffect, useState } from "react";
 import { Link } from 'react-router-dom';
 import swal from "sweetalert";
+import Web3 from "web3";
+
 
 import useAddLibrary from '../../components/useAddLibrary';
 import { useEthContext } from "../../contexts/EthereumContext";
 
 const Navbar = () => {
     useAddLibrary(`${process.env.PUBLIC_URL}/js/main.js`);
-    const { provider, currentAcc } = useEthContext();
+    const [metamaskConnected, setMetamaskConnnected] = useState(false);
+    const [account, setAccount] = useState();
+    const [networkId, setNetworkId] = useState();
+    const [isMetamask, setIsMetamask] = useState(true);
+
+    useEffect(async () => {
+        await loadWeb3().then((data) => {
+            if (data !== false) {
+                loadBlockchainData();
+            }
+        });
+    }, []);
+
+    const loadWeb3 = async () => {
+        if (window.ethereum) {
+            window.web3 = new Web3(window.ethereum);
+        } else if (window.web3) {
+            window.web3 = new Web3(window.web3.currentProvider);
+        } else {
+            setIsMetamask(false);
+            return false;
+        }
+    };
+
+    const loadBlockchainData = async () => {
+        const web3 = window.web3;
+        const accounts = await web3.eth.getAccounts();
+        const networkId = await web3.eth.net.getId();
+        setNetworkId(networkId);
+        if (accounts.length === 0) {
+            setMetamaskConnnected(false);
+        } else {
+            setMetamaskConnnected(true);
+            setAccount(accounts[0]);
+        }
+
+        window.ethereum.on("accountsChanged", (accounts) => {
+            if (accounts.length > 0) setAccount(accounts[0]);
+            else setAccount();
+        });
+        window.ethereum.on("networkChanged", (networkId) => {
+            setNetworkId(networkId);
+        });
+    };
 
     const handleConnectWallet = async () => {
-        if (provider) {
-            if (Number(window.ethereum.chainId) !== 4) {
-                swal("Sorry!", "Please Switch To Ethereum Mainnet!", "error");
-            } else {
-                await provider.request({ method: `eth_requestAccounts` });
-            }
-        } else {
-            swal(
-                "Sorry!",
-                "Please Install Metamask Wallet in this Browser!",
-                "error"
-            );
+        if (window.ethereum) {
+            await window.ethereum.enable();
+            setMetamaskConnnected(true);
         }
     };
     return (
@@ -121,8 +157,8 @@ const Navbar = () => {
                         <Link className="header__action-btn header__action-btn--signin" to="/">
                             <span onClick={handleConnectWallet}>
                                 {
-                                    currentAcc
-                                        ? `${currentAcc.substring(0, 6)}...${currentAcc.substring(
+                                    account
+                                        ? `${account.substring(0, 6)}...${account.substring(
                                             38
                                         )}`
                                         : "Connect Wallet"
